@@ -37,8 +37,8 @@ MotionControl::init()
   tcgetattr(m_ttyFD, &ttyOptions);
   cfsetispeed(&ttyOptions, baudrate);
   cfsetospeed(&ttyOptions, baudrate);
-  ttyOptions.c_cflag &= ~(PARENB | CSTOPB);
-  ttyOptions.c_iflag |= (IXON | IXOFF | IXANY);
+  ttyOptions.c_cflag &= ~(PARENB | CSTOPB); // no parity; 1 stop bit
+  ttyOptions.c_iflag &= ~(IXON | IXOFF | IXANY); // no HW flow control
   ttyOptions.c_lflag |= ICANON;
   if (tcsetattr(m_ttyFD, TCSANOW, &ttyOptions) != 0) {
     warn("motor%d: Failed to tcsetattr()", m_motorID);
