@@ -20,6 +20,29 @@
 
 
 /*---------------------------------- public: -----------------------------{{{-*/
+const RegisterBits<uint16_t> MotionControl::CST_ANSW_Bits = RegisterBits<uint16_t>(1, 2);
+const RegisterBits<uint16_t> MotionControl::CST_SOR_Bits = RegisterBits<uint16_t>(3, 5);
+const RegisterBits<uint16_t> MotionControl::CST_MOD_Bits = RegisterBits<uint16_t>(7, 9);
+const RegisterBits<uint16_t> MotionControl::CST_EN_Bits = RegisterBits<uint16_t>(10, 10);
+const RegisterBits<uint16_t> MotionControl::CST_PR_Bits = RegisterBits<uint16_t>(11, 11);
+const RegisterBits<uint16_t> MotionControl::CST_ADIR_Bits = RegisterBits<uint16_t>(12, 12);
+const RegisterBits<uint16_t> MotionControl::CST_APL_Bits = RegisterBits<uint16_t>(13, 13);
+const RegisterBits<uint16_t> MotionControl::CST_SIN_Bits = RegisterBits<uint16_t>(14, 14);
+const RegisterBits<uint16_t> MotionControl::CST_NET_Bits = RegisterBits<uint16_t>(15, 15);
+
+const RegisterBits<uint16_t> MotionControl::OST_Homing_Bits = RegisterBits<uint16_t>(0, 0);
+const RegisterBits<uint16_t> MotionControl::OST_ProgRunning_Bits = RegisterBits<uint16_t>(1, 1);
+const RegisterBits<uint16_t> MotionControl::OST_ProgStopDelay_Bits = RegisterBits<uint16_t>(2, 2);
+const RegisterBits<uint16_t> MotionControl::OST_ProgStopNotify_Bits = RegisterBits<uint16_t>(3, 3);
+const RegisterBits<uint16_t> MotionControl::OST_CurrentLimit_Bits = RegisterBits<uint16_t>(4, 4);
+const RegisterBits<uint16_t> MotionControl::OST_DeviationError_Bits = RegisterBits<uint16_t>(5, 5);
+const RegisterBits<uint16_t> MotionControl::OST_OverVolt_Bits = RegisterBits<uint16_t>(6, 6);
+const RegisterBits<uint16_t> MotionControl::OST_OverTemp_Bits = RegisterBits<uint16_t>(7, 7);
+const RegisterBits<uint16_t> MotionControl::OST_StatusInput_Bits = RegisterBits<uint16_t>(8, 12);
+const RegisterBits<uint16_t> MotionControl::OST_PosReached_Bits = RegisterBits<uint16_t>(16, 16);
+const RegisterBits<uint16_t> MotionControl::OST_LimitToContCurrent_Bits = RegisterBits<uint16_t>(17, 17);
+
+
 MotionControl::MotionControl(int p_motorID, const std::string& p_ttyDevicePath)
   :m_motorID(p_motorID),
    m_ttyDevicePath(p_ttyDevicePath),
@@ -52,10 +75,26 @@ MotionControl::init()
   }
 
   sendCmd("ANSW0");
+
+  sendCmd("CONTMOD");
+  sendCmd("ENCRES1000");
+  sendCmd("KN1506");
+  sendCmd("RM3400");
+
+  sendCmd("SP1500");
+  sendCmd("AC1500");
+  sendCmd("DEC1500");
+  sendCmd("DEV100");
+  sendCmd("DCE20");
+
+  sendCmd("EN");
+
   m_initialized = true;
 
   sendCmd("GTYP");
   printf("Controller: %s\n", getReply().c_str());
+
+  printf("Status: %s\n", getConfigurationStatus().c_str());
 
   return true;
 }
@@ -130,6 +169,71 @@ MotionControl::getReplyWait(int p_waitMaxMS)
 
   return std::string();
 }
+
+std::string
+MotionControl::getConfigurationStatus()
+{
+  sendCmd("CST");
+  std::string replyStr = getReply();
+  uint16_t reply = toIntSlow<uint16_t>(replyStr);
+
+  std::string cst;
+  cst += "ANSW=" + toString(CST_ANSW_Bits.getVal(reply));
+  cst += " SOR=" + toString(CST_SOR_Bits.getVal(reply));
+  cst += " MOD=" + toString(CST_MOD_Bits.getVal(reply));
+  cst += " EN=" + toString(CST_EN_Bits.getVal(reply));
+  cst += " PR=" + toString(CST_PR_Bits.getVal(reply));
+  cst += " ADIR=" + toString(CST_ADIR_Bits.getVal(reply));
+  cst += " APL=" + toString(CST_APL_Bits.getVal(reply));
+  cst += " SIN=" + toString(CST_SIN_Bits.getVal(reply));
+  cst += " NET=" + toString(CST_NET_Bits.getVal(reply));
+
+  return cst;
+}
+
+std::string
+MotionControl::getOperationStatus()
+{
+  sendCmd("OST");
+  std::string replyStr = getReply();
+  uint32_t reply = toIntSlow<uint32_t>(replyStr);
+
+  std::string ost;
+  ost += "Homing=" + toString(OST_Homing_Bits.getVal(reply));
+  ost += " ProgRunning=" + toString(OST_ProgRunning_Bits.getVal(reply));
+  ost += " ProgStopDelay=" + toString(OST_ProgStopDelay_Bits.getVal(reply));
+  ost += " ProgStopNotify=" + toString(OST_ProgStopNotify_Bits.getVal(reply));
+  ost += " CurrentLimit=" + toString(OST_CurrentLimit_Bits.getVal(reply));
+  ost += " DeviationError=" + toString(OST_DeviationError_Bits.getVal(reply));
+  ost += " OverVolt=" + toString(OST_OverVolt_Bits.getVal(reply));
+  ost += " OverTemp=" + toString(OST_OverTemp_Bits.getVal(reply));
+  ost += " StatusInput=" + toString(OST_StatusInput_Bits.getVal(reply));
+  ost += " PosReached=" + toString(OST_PosReached_Bits.getVal(reply));
+  ost += " LimitToContCurrent=" + toString(OST_LimitToContCurrent_Bits.getVal(reply));
+
+  return ost;
+}
+
+uint64_t
+MotionControl::getPos()
+{
+  sendCmd("POS");
+  std::string replyStr = getReply();
+  return toIntSlow<uint64_t>(replyStr);
+}
+
+void
+MotionControl::movePos(uint64_t pos)
+{
+  sendCmd("LA" + toString(pos));
+  sendCmd("M");
+}
+
+void
+MotionControl::moveStop()
+{
+  sendCmd("V0");
+}
 /*------------------------------------------------------------------------}}}-*/
 
 /*---------------------------------- private: ----------------------------{{{-*/
@@ -153,6 +257,12 @@ MotionControl::enableMotor()
   sendCmd("EN");
 }
 
+void
+MotionControl::disableMotor()
+{
+  sendCmd("DI");
+}
+
 template<class T> std::string
 MotionControl::toString(T p_arg)
 {
@@ -172,5 +282,17 @@ MotionControl::toHexString(const std::string& p_str)
     ss << std::setw(2) << std::setfill('0') << std::hex << (unsigned int)p_str[i] << " ";
   }
   return ss.str();
+}
+
+
+template<class T> T
+MotionControl::toIntSlow(const std::string& p_str)
+{
+  std::stringstream ss;
+  ss << p_str;
+  T res;
+  ss >> res;
+
+  return res;
 }
 /*------------------------------------------------------------------------}}}-*/
