@@ -15,9 +15,11 @@ main(int argc, char** argv)
     std::string userCmd;
     std::cout << "Next command: ";
     std::cin >> userCmd;
-    motor.sendCmdAck(userCmd);
-    std::string motorReply = motor.waitForReply();
-    std::cout << "Reply (len=" << motorReply.size() << "): " << motorReply << std::endl;
+    motor.sendCmd(userCmd);
+    std::string motorReply = motor.getReplyWait(100);
+    if (!motorReply.empty()) {
+      std::cout << "Reply (len=" << motorReply.size() << "): " << motorReply << std::endl;
+    }
   }
 
   return 0;

@@ -35,20 +35,21 @@ class MotionControl
     // methods
     bool init();
     bool initialized();
-    void sendCmdAck(const std::string& p_cmd);
-    std::string waitForReply();
+    void sendCmd(const std::string& p_cmd);
+    std::string getReply();
+    std::string getReplyNoBlock();
+    std::string getReplyWait(int p_waitMaxMS);
 
     // variables
 
 
   private:
     // methods
-    void sendCmd(const std::string& p_cmd);
     void resetMotor();
     void enableMotor();
-    void enableAcks();
-    std::string getReply();
-    bool waitForOKReply();
+    template<class T> std::string toString(T p_arg);
+    std::string toHexString(const std::string& p_str);
+    void failOnUnitialized(const std::string& p_errorMsg);
 
     // variables
     int m_motorID;
