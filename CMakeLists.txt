@@ -77,6 +77,7 @@ include_directories(
 # )
 add_library(motioncontrol
   src/MotionControl.cpp
+  src/Viky.cpp
 )
 
 ## Declare a cpp executable
