@@ -52,8 +52,8 @@ find_package(catkin REQUIRED COMPONENTS
 ## DEPENDS: system dependencies of this project that dependent projects also need
 catkin_package(
   INCLUDE_DIRS include
-#  LIBRARIES viky
-#  CATKIN_DEPENDS roscpp
+  LIBRARIES motioncontrol
+  CATKIN_DEPENDS roscpp
 #  DEPENDS system_lib
 )
 
@@ -81,6 +81,7 @@ add_library(motioncontrol
 )
 
 ## Declare a cpp executable
+add_executable(cmd_manual_control src/cmd_manual_control.cpp)
 add_executable(viky src/main.cpp)
 
 ## Add cmake target dependencies of the executable/library
@@ -88,6 +89,10 @@ add_executable(viky src/main.cpp)
 # add_dependencies(viky_node viky_generate_messages_cpp)
 
 ## Specify libraries to link a library or executable target against
+target_link_libraries(cmd_manual_control
+  ${catkin_LIBRARIES}
+  motioncontrol
+)
 target_link_libraries(viky
   ${catkin_LIBRARIES}
   motioncontrol

@@ -1,49 +1,60 @@
 #include <string>
 #include <iostream>
+#include <stdio.h>
 #include <signal.h>
 
-#include "MotionControl.h"
+#include <ros/ros.h>
 
-MotionControl* motor;
+#include "Viky.h"
+
+Viky* viky;
 
 void
-motorDisableSighandler(int)
+vikyDisableSighandler(int)
 {
-  motor->disableMotor();
+  viky->disable();
   _exit(0);
 }
 
 int
 main(int argc, char** argv)
 {
-  //motor = MotionControl(0, "/dev/ttyS3"); // rotation
-  //motor = MotionControl(1, "/dev/ttyS4"); // tilt
-  motor = new MotionControl(2, "/dev/ttyS5"); // linear
-  if (!motor->init()) {
+  ros::init(argc, argv, "viky");
+
+  viky = new Viky();
+  signal(SIGINT, vikyDisableSighandler);
+
+  if (!viky->init()) {
+    printf("Viky init() failed\n");
     return 1;
   }
 
-  signal(SIGINT, motorDisableSighandler);
-
-  while (true) {
-    std::string userCmd;
-    std::cout << "Next command: ";
-    std::cin >> userCmd;
-    if (userCmd == "CST") {
-      std::cout << "Configuration Status: " << motor->getConfigurationStatus() << std::endl;
-    } else if (userCmd == "OST") {
-      std::cout << "Operation Status: " << motor->getOperationStatus() << std::endl;
-    } else if (userCmd == "HOMING") {
-      motor->homing(1);
-    } else {
-      motor->sendCmd(userCmd);
-      std::string motorReply = motor->getReplyWait(100);
-      if (!motorReply.empty()) {
-        std::cout << "Reply (len=" << motorReply.size() << "): " << motorReply << std::endl;
-      }
-    }
+  if (!viky->homing()) {
+    printf("Viky homing() failed\n");
+    return 2;
   }
 
+  printf("rotate(M_PI/2)\n");
+  viky->rotate(M_PI/2);
+  getchar();
+  printf("rotate(-M_PI/4)\n");
+  viky->rotate(-M_PI/4);
+  getchar();
+  printf("tilt(M_PI/9)\n");
+  viky->tilt(M_PI/9);
+  getchar();
+  printf("tilt(M_PI/18)\n");
+  viky->tilt(M_PI/18);
+  getchar();
+  printf("linear(6)\n");
+  viky->linear(6);
+  getchar();
+  printf("linear(3)\n");
+  viky->linear(3);
+  getchar();
+
+  printf("TODO\n");
+  sleep(100);
 
   return 0;
 }

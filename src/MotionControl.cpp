@@ -113,7 +113,7 @@ MotionControl::sendCmd(const std::string& p_cmd)
     cmd += '\r';
   }
 
-  //printf("sendCmd (len=%zd): \"%s\"\n", cmd.size(), cmd.c_str());
+  printf("motor%d: sendCmd (len=%zd): \"%s\"\n", m_motorID, cmd.size(), cmd.c_str());
 
   int bytesWritten;
   if ((bytesWritten = write(m_ttyFD, cmd.c_str(), cmd.size())) != cmd.size()) {
@@ -223,8 +223,9 @@ MotionControl::getPos()
 }
 
 void
-MotionControl::movePos(uint64_t pos)
+MotionControl::movePos(int64_t pos)
 {
+  printf("motor%d: movePos(%ld)\n", m_motorID, pos);
   sendCmd("LA" + toString(pos));
   sendCmd("M");
 }
@@ -254,6 +255,9 @@ MotionControl::homing(int8_t dir)
     if (current >= homingCurrentThreshold) {
       moveStop();
       setHomePosition();
+      movePos(-1 * dir * 1000);
+      usleep(500 * 1000);
+      setHomePosition();
       return true;
     }
   }
@@ -272,6 +276,12 @@ MotionControl::disableMotor()
 {
   sendCmd("DI");
 }
+
+void
+MotionControl::setHomePosition()
+{
+  sendCmd("HO");
+}
 /*------------------------------------------------------------------------}}}-*/
 
 /*---------------------------------- private: ----------------------------{{{-*/
@@ -287,12 +297,6 @@ void
 MotionControl::resetMotor()
 {
   sendCmd("RESET");
-}
-
-void
-MotionControl::setHomePosition()
-{
-  sendCmd("HO");
 }
 
 template<class T> std::string

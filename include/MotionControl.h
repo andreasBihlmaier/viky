@@ -102,10 +102,11 @@ class MotionControl
     void enableMotor();
     void disableMotor();
     uint64_t getPos();
-    void movePos(uint64_t pos);
+    void movePos(int64_t pos);
     void moveStop();
     int getCurrent();
     bool homing(int8_t dir);
+    void setHomePosition();
 
     // variables
 
@@ -113,7 +114,6 @@ class MotionControl
   private:
     // methods
     void resetMotor();
-    void setHomePosition();
     void failOnUnitialized(const std::string& p_errorMsg);
 
     template<class T> std::string toString(T p_arg);
