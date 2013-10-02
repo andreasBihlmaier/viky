@@ -113,7 +113,7 @@ MotionControl::sendCmd(const std::string& p_cmd)
     cmd += '\r';
   }
 
-  printf("motor%d: sendCmd (len=%zd): \"%s\"\n", m_motorID, cmd.size(), cmd.c_str());
+  //printf("motor%d: sendCmd (len=%zd): \"%s\"\n", m_motorID, cmd.size(), cmd.c_str());
 
   int bytesWritten;
   if ((bytesWritten = write(m_ttyFD, cmd.c_str(), cmd.size())) != cmd.size()) {
@@ -173,6 +173,8 @@ MotionControl::getReplyWait(int p_waitMaxMS)
 std::string
 MotionControl::getConfigurationStatus()
 {
+  boost::lock_guard<boost::mutex> ttyLock(m_ttyMutex);
+
   sendCmd("CST");
   std::string replyStr = getReply();
   uint16_t reply = toIntSlow<uint16_t>(replyStr);
@@ -194,6 +196,8 @@ MotionControl::getConfigurationStatus()
 std::string
 MotionControl::getOperationStatus()
 {
+  boost::lock_guard<boost::mutex> ttyLock(m_ttyMutex);
+
   sendCmd("OST");
   std::string replyStr = getReply();
   uint32_t reply = toIntSlow<uint32_t>(replyStr);
@@ -217,6 +221,8 @@ MotionControl::getOperationStatus()
 uint64_t
 MotionControl::getPos()
 {
+  boost::lock_guard<boost::mutex> ttyLock(m_ttyMutex);
+
   sendCmd("POS");
   std::string replyStr = getReply();
   return toIntSlow<uint64_t>(replyStr);
@@ -225,7 +231,9 @@ MotionControl::getPos()
 void
 MotionControl::movePos(int64_t pos)
 {
-  printf("motor%d: movePos(%ld)\n", m_motorID, pos);
+  boost::lock_guard<boost::mutex> ttyLock(m_ttyMutex);
+
+  //printf("motor%d: movePos(%ld)\n", m_motorID, pos);
   sendCmd("LA" + toString(pos));
   sendCmd("M");
 }
@@ -233,12 +241,16 @@ MotionControl::movePos(int64_t pos)
 void
 MotionControl::moveStop()
 {
+  boost::lock_guard<boost::mutex> ttyLock(m_ttyMutex);
+
   sendCmd("V0");
 }
 
 int
 MotionControl::getCurrent()
 {
+  boost::lock_guard<boost::mutex> ttyLock(m_ttyMutex);
+
   sendCmd("GRC");
   std::string replyStr = getReply();
   return toIntSlow<int>(replyStr);
@@ -268,18 +280,24 @@ MotionControl::homing(int8_t dir)
 void
 MotionControl::enableMotor()
 {
+  boost::lock_guard<boost::mutex> ttyLock(m_ttyMutex);
+
   sendCmd("EN");
 }
 
 void
 MotionControl::disableMotor()
 {
+  boost::lock_guard<boost::mutex> ttyLock(m_ttyMutex);
+
   sendCmd("DI");
 }
 
 void
 MotionControl::setHomePosition()
 {
+  boost::lock_guard<boost::mutex> ttyLock(m_ttyMutex);
+
   sendCmd("HO");
 }
 /*------------------------------------------------------------------------}}}-*/
@@ -296,6 +314,8 @@ MotionControl::failOnUnitialized(const std::string& p_errorMsg)
 void
 MotionControl::resetMotor()
 {
+  boost::lock_guard<boost::mutex> ttyLock(m_ttyMutex);
+
   sendCmd("RESET");
 }
 

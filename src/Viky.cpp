@@ -5,7 +5,6 @@
 #include <cmath>
 
 // library includes
-#include <ros/ros.h>
 
 // custom includes
 
@@ -15,7 +14,9 @@ const std::string Viky::rotationMotorDevicePath = "/dev/ttyS3";
 const std::string Viky::tiltMotorDevicePath = "/dev/ttyS4";
 const std::string Viky::linearMotorDevicePath = "/dev/ttyS5";
 
-Viky::Viky()
+Viky::Viky(const std::string& p_jointSubscribeTopic, const std::string& p_jointPublishTopic)
+  :m_jointSubscribeTopic(p_jointSubscribeTopic),
+   m_jointPublishTopic(p_jointPublishTopic)
 {
   m_motors[rotationMotorIdx] = new MotionControl(rotationMotorIdx, rotationMotorDevicePath);
   m_motors[tiltMotorIdx] = new MotionControl(tiltMotorIdx, tiltMotorDevicePath);
@@ -23,13 +24,24 @@ Viky::Viky()
 }
 
 bool
-Viky::init()
+Viky::initHardware()
 {
   for (unsigned motorIdx = 0; motorIdx < motorCount; motorIdx++) {
     if (!m_motors[motorIdx]->init()) {
       return false;
     }
   }
+
+  return true;
+}
+
+bool
+Viky::initROS()
+{
+  m_jointsSubscriber = m_nodeHandle.subscribe<sensor_msgs::JointState>(m_jointSubscribeTopic, 1, &Viky::jointsCallback, this);
+  m_jointsPublisher = m_nodeHandle.advertise<sensor_msgs::JointState>(m_jointPublishTopic, 1);
+
+  m_publishThread = new boost::thread(boost::bind(&Viky::publishJoints, this));
 
   return true;
 }
@@ -87,6 +99,13 @@ Viky::rotate(double pos)
   m_motors[rotationMotorIdx]->movePos(double(rotationFullRotationIncrements)/2 * rotationRightSign * (pos / M_PI));
 }
 
+double
+Viky::getRotation()
+{
+  int64_t increments = m_motors[rotationMotorIdx]->getPos();
+  return (double(increments) * rotationRightSign * M_PI) / (rotationFullRotationIncrements/2.0);
+}
+
 void
 Viky::tilt(double angle)
 {
@@ -97,6 +116,13 @@ Viky::tilt(double angle)
   m_motors[tiltMotorIdx]->movePos(double(tiltTotalIncrements) * tiltTowardsHorizontalSign * ((angle * 3)/M_PI));
 }
 
+double
+Viky::getTilt()
+{
+  int64_t increments = m_motors[tiltMotorIdx]->getPos();
+  return (double(increments) * tiltTowardsHorizontalSign * M_PI) / (tiltTotalIncrements * 3.0);
+}
+
 void
 Viky::linear(double pos)
 {
@@ -105,6 +131,13 @@ Viky::linear(double pos)
     return;
   }
   m_motors[linearMotorIdx]->movePos(double(linearTotalIncrements) * linearInSign * (pos/20.0));
+}
+
+double
+Viky::getLinear()
+{
+  int64_t increments = m_motors[linearMotorIdx]->getPos();
+  return (double(increments) * linearInSign * 20.0) / double(linearTotalIncrements);
 }
 /*------------------------------------------------------------------------}}}-*/
 
@@ -119,5 +152,38 @@ getYesNo()
   } while (answer != 'y' && answer != 'n');
 
   return answer;
+}
+
+void
+Viky::jointsCallback(const sensor_msgs::JointStateConstPtr& msg)
+{
+  if (msg->position.size() != motorCount) {
+    ROS_ERROR("Wrong number of joint positions: %zd\n", msg->position.size());
+    return;
+  }
+
+  rotate(msg->position[rotationMotorIdx]);
+  tilt(msg->position[tiltMotorIdx]);
+  linear(msg->position[linearMotorIdx]);
+}
+
+void
+Viky::publishJoints()
+{
+  uint32_t sequence = 0;
+  ros::Rate publish_rate(100);
+  while (ros::ok()) {
+    sensor_msgs::JointState joints;
+    joints.header.seq = sequence;
+    joints.header.stamp = ros::Time::now();
+    joints.position.push_back(getRotation());
+    joints.position.push_back(getTilt());
+    joints.position.push_back(getLinear());
+
+    m_jointsPublisher.publish(joints);
+
+    publish_rate.sleep();
+    sequence++;
+  }
 }
 /*------------------------------------------------------------------------}}}-*/

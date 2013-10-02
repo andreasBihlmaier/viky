@@ -4,6 +4,9 @@
 // system includes
 
 // library includes
+#include <ros/ros.h>
+#include <sensor_msgs/JointState.h>
+#include <boost/thread/thread.hpp>
 
 // custom includes
 #include "MotionControl.h"
@@ -46,18 +49,22 @@ class Viky
 
 
     // constructors
-    Viky();
+    Viky(const std::string& p_jointSubscribeTopic, const std::string& p_jointPublishTopic);
 
     // overwritten methods
 
     // methods
-    bool init();
+    bool initHardware();
+    bool initROS();
     void disable();
     void enable();
     bool homing();
     void rotate(double pos); // radians [-PI, PI] (=[-180, 180]); zero pos = at marking next to "EndoControl" label
+    double getRotation();
     void tilt(double angle); // radians [0, PI/3] (=[0, 60]); zero pos = vertical
+    double getTilt();
     void linear(double pos); // cm [0, 20]; zero pos = all the way out
+    double getLinear();
 
     // variables
 
@@ -65,10 +72,18 @@ class Viky
   private:
     // methods
     char getYesNo();
+    void jointsCallback(const sensor_msgs::JointStateConstPtr& msg);
+    void publishJoints();
 
     // variables
     MotionControl* m_motors[motorCount];
+    std::string m_jointSubscribeTopic;
+    std::string m_jointPublishTopic;
+    ros::NodeHandle m_nodeHandle;
+    ros::Subscriber m_jointsSubscriber;
+    ros::Publisher m_jointsPublisher;
 
+    boost::thread* m_publishThread;
 
 };
 

@@ -21,11 +21,15 @@ main(int argc, char** argv)
 {
   ros::init(argc, argv, "viky");
 
-  viky = new Viky();
+  // TODO make setable via launch file
+  std::string jointsSubscribeTopic = "/viky/joints_target";
+  std::string jointsPublishTopic = "/viky/joints_current";
+
+  viky = new Viky(jointsSubscribeTopic, jointsPublishTopic);
   signal(SIGINT, vikyDisableSighandler);
 
-  if (!viky->init()) {
-    printf("Viky init() failed\n");
+  if (!viky->initHardware()) {
+    printf("Viky initHardware() failed\n");
     return 1;
   }
 
@@ -34,27 +38,13 @@ main(int argc, char** argv)
     return 2;
   }
 
-  printf("rotate(M_PI/2)\n");
-  viky->rotate(M_PI/2);
-  getchar();
-  printf("rotate(-M_PI/4)\n");
-  viky->rotate(-M_PI/4);
-  getchar();
-  printf("tilt(M_PI/9)\n");
-  viky->tilt(M_PI/9);
-  getchar();
-  printf("tilt(M_PI/18)\n");
-  viky->tilt(M_PI/18);
-  getchar();
-  printf("linear(6)\n");
-  viky->linear(6);
-  getchar();
-  printf("linear(3)\n");
-  viky->linear(3);
-  getchar();
+  if (!viky->initROS()) {
+    printf("Viky initROS() failed\n");
+    return 3;
+  }
 
-  printf("TODO\n");
-  sleep(100);
+  printf("ViKY READY\n");
+  ros::spin();
 
   return 0;
 }

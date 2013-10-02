@@ -6,6 +6,7 @@
 #include <stdint.h>
 
 // library includes
+#include <boost/thread/thread.hpp>
 
 // custom includes
 
@@ -125,6 +126,7 @@ class MotionControl
     std::string m_ttyDevicePath;
     int m_ttyFD;
     bool m_initialized;
+    boost::mutex m_ttyMutex;
 
 
 };
