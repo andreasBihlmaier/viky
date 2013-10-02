@@ -77,6 +77,10 @@ class MotionControl
     const static RegisterBits<uint16_t> OST_StatusInput_Bits;
     const static RegisterBits<uint16_t> OST_PosReached_Bits;
     const static RegisterBits<uint16_t> OST_LimitToContCurrent_Bits;
+
+    const static unsigned homingMeasurementMaxCnt = 500;
+    const static int homingCurrentThreshold = 700;
+
  
     // static utility functions
 
@@ -95,9 +99,13 @@ class MotionControl
     std::string getReplyWait(int p_waitMaxMS);
     std::string getConfigurationStatus();
     std::string getOperationStatus();
+    void enableMotor();
+    void disableMotor();
     uint64_t getPos();
     void movePos(uint64_t pos);
     void moveStop();
+    int getCurrent();
+    bool homing(int8_t dir);
 
     // variables
 
@@ -105,8 +113,7 @@ class MotionControl
   private:
     // methods
     void resetMotor();
-    void enableMotor();
-    void disableMotor();
+    void setHomePosition();
     void failOnUnitialized(const std::string& p_errorMsg);
 
     template<class T> std::string toString(T p_arg);

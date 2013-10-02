@@ -234,6 +234,44 @@ MotionControl::moveStop()
 {
   sendCmd("V0");
 }
+
+int
+MotionControl::getCurrent()
+{
+  sendCmd("GRC");
+  std::string replyStr = getReply();
+  return toIntSlow<int>(replyStr);
+}
+
+bool
+MotionControl::homing(int8_t dir)
+{
+  //printf("Starting homing\n");
+  sendCmd("V" + toString(dir * 100));
+  for (unsigned measurementCnt  = 0; measurementCnt < homingMeasurementMaxCnt; measurementCnt++) {
+    int current = getCurrent();
+    //printf("current=%d\n", current);
+    if (current >= homingCurrentThreshold) {
+      moveStop();
+      setHomePosition();
+      return true;
+    }
+  }
+
+  return false;
+}
+
+void
+MotionControl::enableMotor()
+{
+  sendCmd("EN");
+}
+
+void
+MotionControl::disableMotor()
+{
+  sendCmd("DI");
+}
 /*------------------------------------------------------------------------}}}-*/
 
 /*---------------------------------- private: ----------------------------{{{-*/
@@ -252,15 +290,9 @@ MotionControl::resetMotor()
 }
 
 void
-MotionControl::enableMotor()
+MotionControl::setHomePosition()
 {
-  sendCmd("EN");
-}
-
-void
-MotionControl::disableMotor()
-{
-  sendCmd("DI");
+  sendCmd("HO");
 }
 
 template<class T> std::string

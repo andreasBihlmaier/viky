@@ -1,6 +1,7 @@
 #include "Viky.h"
 
 // system includes
+#include <stdio.h>
 
 // library includes
 
@@ -27,6 +28,31 @@ Viky::init()
   return true;
 }
 
+bool
+Viky::homing()
+{
+  m_motors[tiltMotorIdx]->disableMotor();
+  m_motors[linearMotorIdx]->disableMotor();
+  printf("Move linear all the way out (0 pos) and tilt to vertical (0 angle). Then press [RETURN] to start homing\n");
+  getchar();
+  m_motors[tiltMotorIdx]->enableMotor();
+  m_motors[linearMotorIdx]->enableMotor();
+
+  /* TODO
+  if (!m_motors[tiltMotorIdx]->homing()) {
+    printf("Failed to home tilt\n");
+    return false;
+  }
+  */
+
+  if (!m_motors[linearMotorIdx]->homing(linearOutSign)) {
+    printf("Failed to home linear\n");
+    return false;
+  }
+
+  return true;
+}
+
 void
 Viky::rotate(double pos)
 {
@@ -47,4 +73,15 @@ Viky::linear(double pos)
 /*------------------------------------------------------------------------}}}-*/
 
 /*---------------------------------- private: ----------------------------{{{-*/
+char
+getYesNo()
+{
+  char answer;
+  do {
+    printf("y/n? ");
+    answer = getchar();
+  } while (answer != 'y' && answer != 'n');
+
+  return answer;
+}
 /*------------------------------------------------------------------------}}}-*/
