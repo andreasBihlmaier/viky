@@ -9,12 +9,11 @@
 #include <unistd.h>
 #include <err.h>
 #include <stdexcept>
-#include <sstream>
-#include <iomanip>
 
 #include <sys/ioctl.h>
 
 // library includes
+#include <ahbstring.h>
 
 // custom includes
 
@@ -129,7 +128,7 @@ MotionControl::getReply()
   char replyChars[maxReplySize];
   int replyLength = read(m_ttyFD, replyChars, maxReplySize);
   replyChars[replyLength] = '\0';
-  //printf("getReply() raw: %s=\"%s\"\n", toHexString(replyChars).c_str(), replyChars);
+  //printf("getReply() raw: %s=\"%s\"\n", ahb::string::toHexString(replyChars).c_str(), replyChars);
   if (replyLength < 3 || replyChars[replyLength - 2] != '\r' || replyChars[replyLength - 1] != '\n') {
     replyLength = 0;
   } else {
@@ -177,18 +176,18 @@ MotionControl::getConfigurationStatus()
 
   sendCmd("CST");
   std::string replyStr = getReply();
-  uint16_t reply = toIntSlow<uint16_t>(replyStr);
+  uint16_t reply = ahb::string::toIntSlow<uint16_t>(replyStr);
 
   std::string cst;
-  cst += "ANSW=" + toString(CST_ANSW_Bits.getVal(reply));
-  cst += " SOR=" + toString(CST_SOR_Bits.getVal(reply));
-  cst += " MOD=" + toString(CST_MOD_Bits.getVal(reply));
-  cst += " EN=" + toString(CST_EN_Bits.getVal(reply));
-  cst += " PR=" + toString(CST_PR_Bits.getVal(reply));
-  cst += " ADIR=" + toString(CST_ADIR_Bits.getVal(reply));
-  cst += " APL=" + toString(CST_APL_Bits.getVal(reply));
-  cst += " SIN=" + toString(CST_SIN_Bits.getVal(reply));
-  cst += " NET=" + toString(CST_NET_Bits.getVal(reply));
+  cst += "ANSW=" + ahb::string::toString(CST_ANSW_Bits.getVal(reply));
+  cst += " SOR=" + ahb::string::toString(CST_SOR_Bits.getVal(reply));
+  cst += " MOD=" + ahb::string::toString(CST_MOD_Bits.getVal(reply));
+  cst += " EN=" + ahb::string::toString(CST_EN_Bits.getVal(reply));
+  cst += " PR=" + ahb::string::toString(CST_PR_Bits.getVal(reply));
+  cst += " ADIR=" + ahb::string::toString(CST_ADIR_Bits.getVal(reply));
+  cst += " APL=" + ahb::string::toString(CST_APL_Bits.getVal(reply));
+  cst += " SIN=" + ahb::string::toString(CST_SIN_Bits.getVal(reply));
+  cst += " NET=" + ahb::string::toString(CST_NET_Bits.getVal(reply));
 
   return cst;
 }
@@ -200,20 +199,20 @@ MotionControl::getOperationStatus()
 
   sendCmd("OST");
   std::string replyStr = getReply();
-  uint32_t reply = toIntSlow<uint32_t>(replyStr);
+  uint32_t reply = ahb::string::toIntSlow<uint32_t>(replyStr);
 
   std::string ost;
-  ost += "Homing=" + toString(OST_Homing_Bits.getVal(reply));
-  ost += " ProgRunning=" + toString(OST_ProgRunning_Bits.getVal(reply));
-  ost += " ProgStopDelay=" + toString(OST_ProgStopDelay_Bits.getVal(reply));
-  ost += " ProgStopNotify=" + toString(OST_ProgStopNotify_Bits.getVal(reply));
-  ost += " CurrentLimit=" + toString(OST_CurrentLimit_Bits.getVal(reply));
-  ost += " DeviationError=" + toString(OST_DeviationError_Bits.getVal(reply));
-  ost += " OverVolt=" + toString(OST_OverVolt_Bits.getVal(reply));
-  ost += " OverTemp=" + toString(OST_OverTemp_Bits.getVal(reply));
-  ost += " StatusInput=" + toString(OST_StatusInput_Bits.getVal(reply));
-  ost += " PosReached=" + toString(OST_PosReached_Bits.getVal(reply));
-  ost += " LimitToContCurrent=" + toString(OST_LimitToContCurrent_Bits.getVal(reply));
+  ost += "Homing=" + ahb::string::toString(OST_Homing_Bits.getVal(reply));
+  ost += " ProgRunning=" + ahb::string::toString(OST_ProgRunning_Bits.getVal(reply));
+  ost += " ProgStopDelay=" + ahb::string::toString(OST_ProgStopDelay_Bits.getVal(reply));
+  ost += " ProgStopNotify=" + ahb::string::toString(OST_ProgStopNotify_Bits.getVal(reply));
+  ost += " CurrentLimit=" + ahb::string::toString(OST_CurrentLimit_Bits.getVal(reply));
+  ost += " DeviationError=" + ahb::string::toString(OST_DeviationError_Bits.getVal(reply));
+  ost += " OverVolt=" + ahb::string::toString(OST_OverVolt_Bits.getVal(reply));
+  ost += " OverTemp=" + ahb::string::toString(OST_OverTemp_Bits.getVal(reply));
+  ost += " StatusInput=" + ahb::string::toString(OST_StatusInput_Bits.getVal(reply));
+  ost += " PosReached=" + ahb::string::toString(OST_PosReached_Bits.getVal(reply));
+  ost += " LimitToContCurrent=" + ahb::string::toString(OST_LimitToContCurrent_Bits.getVal(reply));
 
   return ost;
 }
@@ -225,7 +224,7 @@ MotionControl::getPos()
 
   sendCmd("POS");
   std::string replyStr = getReply();
-  return toIntSlow<uint64_t>(replyStr);
+  return ahb::string::toIntSlow<uint64_t>(replyStr);
 }
 
 void
@@ -234,7 +233,7 @@ MotionControl::movePos(int64_t pos)
   boost::lock_guard<boost::mutex> ttyLock(m_ttyMutex);
 
   //printf("motor%d: movePos(%ld)\n", m_motorID, pos);
-  sendCmd("LA" + toString(pos));
+  sendCmd("LA" + ahb::string::toString(pos));
   sendCmd("M");
 }
 
@@ -253,14 +252,14 @@ MotionControl::getCurrent()
 
   sendCmd("GRC");
   std::string replyStr = getReply();
-  return toIntSlow<int>(replyStr);
+  return ahb::string::toIntSlow<int>(replyStr);
 }
 
 bool
 MotionControl::homing(int8_t dir)
 {
   //printf("Starting homing\n");
-  sendCmd("V" + toString(dir * 100));
+  sendCmd("V" + ahb::string::toString(dir * 100));
   for (unsigned measurementCnt  = 0; measurementCnt < homingMeasurementMaxCnt; measurementCnt++) {
     int current = getCurrent();
     //printf("current=%d\n", current);
@@ -307,7 +306,7 @@ void
 MotionControl::failOnUnitialized(const std::string& p_errorMsg)
 {
   if (!initialized()) {
-    throw std::runtime_error("motor" + toString(m_motorID) + " not initialized: " + p_errorMsg);
+    throw std::runtime_error("motor" + ahb::string::toString(m_motorID) + " not initialized: " + p_errorMsg);
   }
 }
 
@@ -317,38 +316,5 @@ MotionControl::resetMotor()
   boost::lock_guard<boost::mutex> ttyLock(m_ttyMutex);
 
   sendCmd("RESET");
-}
-
-template<class T> std::string
-MotionControl::toString(T p_arg)
-{
-  std::stringstream ss;
-
-  ss << p_arg;
-
-  return ss.str();
-}
-
-std::string
-MotionControl::toHexString(const std::string& p_str)
-{
-  std::stringstream ss;
-  ss << "0x";
-  for (size_t i = 0; i < p_str.size(); i++) {
-    ss << std::setw(2) << std::setfill('0') << std::hex << (unsigned int)p_str[i] << " ";
-  }
-  return ss.str();
-}
-
-
-template<class T> T
-MotionControl::toIntSlow(const std::string& p_str)
-{
-  std::stringstream ss;
-  ss << p_str;
-  T res;
-  ss >> res;
-
-  return res;
 }
 /*------------------------------------------------------------------------}}}-*/

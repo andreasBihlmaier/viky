@@ -6,6 +6,7 @@ project(viky)
 ## is used, also find other catkin packages
 find_package(catkin REQUIRED COMPONENTS
   roscpp
+  ahbstring
 )
 
 ## System dependencies are found with CMake's conventions

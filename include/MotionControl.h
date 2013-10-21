@@ -117,10 +117,6 @@ class MotionControl
     void resetMotor();
     void failOnUnitialized(const std::string& p_errorMsg);
 
-    template<class T> std::string toString(T p_arg);
-    std::string toHexString(const std::string& p_str);
-    template<class T> T toIntSlow(const std::string& p_str);
-
     // variables
     int m_motorID;
     std::string m_ttyDevicePath;
