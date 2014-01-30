@@ -176,7 +176,7 @@ MotionControl::getConfigurationStatus()
 
   sendCmd("CST");
   std::string replyStr = getReply();
-  uint16_t reply = ahb::string::toIntSlow<uint16_t>(replyStr);
+  uint16_t reply = ahb::string::toNumberSlow<uint16_t>(replyStr);
 
   std::string cst;
   cst += "ANSW=" + ahb::string::toString(CST_ANSW_Bits.getVal(reply));
@@ -199,7 +199,7 @@ MotionControl::getOperationStatus()
 
   sendCmd("OST");
   std::string replyStr = getReply();
-  uint32_t reply = ahb::string::toIntSlow<uint32_t>(replyStr);
+  uint32_t reply = ahb::string::toNumberSlow<uint32_t>(replyStr);
 
   std::string ost;
   ost += "Homing=" + ahb::string::toString(OST_Homing_Bits.getVal(reply));
@@ -224,7 +224,7 @@ MotionControl::getPos()
 
   sendCmd("POS");
   std::string replyStr = getReply();
-  return ahb::string::toIntSlow<uint64_t>(replyStr);
+  return ahb::string::toNumberSlow<uint64_t>(replyStr);
 }
 
 void
@@ -252,7 +252,7 @@ MotionControl::getCurrent()
 
   sendCmd("GRC");
   std::string replyStr = getReply();
-  return ahb::string::toIntSlow<int>(replyStr);
+  return ahb::string::toNumberSlow<int>(replyStr);
 }
 
 bool
