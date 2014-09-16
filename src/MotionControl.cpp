@@ -114,7 +114,7 @@ MotionControl::sendCmd(const std::string& p_cmd)
 
   //printf("motor%d: sendCmd (len=%zd): \"%s\"\n", m_motorID, cmd.size(), cmd.c_str());
 
-  int bytesWritten;
+  size_t bytesWritten;
   if ((bytesWritten = write(m_ttyFD, cmd.c_str(), cmd.size())) != cmd.size()) {
     throw std::runtime_error("Short write to motor");
   }
