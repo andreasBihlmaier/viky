@@ -126,18 +126,18 @@ Viky::getTilt()
 void
 Viky::linear(double pos)
 {
-  if (pos > 20 || pos < 0) {
+  if (pos > 0.2 || pos < 0) {
     ROS_ERROR("Viky::linear invalid pos: %lf\n", pos);
     return;
   }
-  m_motors[linearMotorIdx]->movePos(double(linearTotalIncrements) * linearInSign * (pos/20.0));
+  m_motors[linearMotorIdx]->movePos(double(linearTotalIncrements) * linearInSign * (pos/0.2));
 }
 
 double
 Viky::getLinear()
 {
   int64_t increments = m_motors[linearMotorIdx]->getPos();
-  return (double(increments) * linearInSign * 20.0) / double(linearTotalIncrements);
+  return (double(increments) * linearInSign * 0.2) / double(linearTotalIncrements);
 }
 /*------------------------------------------------------------------------}}}-*/
 
