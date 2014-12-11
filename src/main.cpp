@@ -21,9 +21,8 @@ main(int argc, char** argv)
 {
   ros::init(argc, argv, "viky");
 
-  // TODO make setable via launch file
-  std::string jointsSubscribeTopic = "/viky/joints_target";
-  std::string jointsPublishTopic = "/viky/joints_current";
+  std::string jointsSubscribeTopic = "viky/set_joint";
+  std::string jointsPublishTopic = "viky/get_joint";
 
   viky = new Viky(jointsSubscribeTopic, jointsPublishTopic);
   signal(SIGINT, vikyDisableSighandler);
@@ -43,7 +42,7 @@ main(int argc, char** argv)
     return 3;
   }
 
-  printf("ViKY READY\n");
+  ROS_INFO_STREAM("ViKY READY");
   ros::spin();
 
   return 0;

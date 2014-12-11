@@ -172,14 +172,19 @@ Viky::publishJoints()
 {
   uint32_t sequence = 0;
   ros::Rate publish_rate(100);
+  ROS_INFO_STREAM("ViKY starting to publish");
   while (ros::ok()) {
     sensor_msgs::JointState joints;
     joints.header.seq = sequence;
     joints.header.stamp = ros::Time::now();
+    joints.name.push_back("rotation");
     joints.position.push_back(getRotation());
+    joints.name.push_back("tilt");
     joints.position.push_back(getTilt());
+    joints.name.push_back("linear");
     joints.position.push_back(getLinear());
 
+    //ROS_INFO_STREAM(joints);
     m_jointsPublisher.publish(joints);
 
     publish_rate.sleep();
