@@ -45,6 +45,9 @@ class Viky
     const static int8_t linearInSign = -1;
     const static int64_t linearTotalIncrements = 1185000;
 
+    const static double rOffset;
+    const static double thetaStart;
+
 
     // static utility functions
 

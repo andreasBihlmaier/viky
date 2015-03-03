@@ -13,6 +13,8 @@
 const std::string Viky::rotationMotorDevicePath = "/dev/ttyS3";
 const std::string Viky::tiltMotorDevicePath = "/dev/ttyS4";
 const std::string Viky::linearMotorDevicePath = "/dev/ttyS5";
+const double Viky::rOffset = 0.03;
+const double Viky::thetaStart = M_PI;
 
 Viky::Viky()
 {
@@ -67,7 +69,7 @@ Viky::homing()
 {
   disable();
   printf("\nHOMING move by hand:\n");
-  printf("Rotation to marking at 'EndoControl' label\n");
+  printf("Rotation of 'EndoControl' label to negative world X-axis\n");
   printf("Tilt to vertical (0 angle)\n");
   printf("Linear all the way out (0 pos)\n");
   printf("Then press [RETURN] to start homing\n");
@@ -170,9 +172,9 @@ Viky::jointsCallback(const sensor_msgs::JointStateConstPtr& msg)
 void
 Viky::trocarCallback(const trocar2cartesian_msgs::TrocarPoseConstPtr& msg)
 {
-  linear(msg->r);
-  tilt(msg->theta);
-  rotate(msg->phi);
+  linear(msg->r - rOffset);
+  tilt(thetaStart - msg->theta);
+  rotate(-msg->phi);
 }
 
 void
@@ -195,9 +197,9 @@ Viky::publishJoints()
     m_jointsPublisher.publish(joints);
 
     trocar2cartesian_msgs::TrocarPose trocar;
-    trocar.r = getLinear();
-    trocar.theta = getTilt();
-    trocar.phi = getRotation();
+    trocar.r = getLinear() + rOffset;
+    trocar.theta = thetaStart - getTilt();
+    trocar.phi = -getRotation();
     m_trocarPublisher.publish(trocar);
 
     publish_rate.sleep();
