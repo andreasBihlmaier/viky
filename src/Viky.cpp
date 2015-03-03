@@ -197,6 +197,7 @@ Viky::publishJoints()
     m_jointsPublisher.publish(joints);
 
     trocar2cartesian_msgs::TrocarPose trocar;
+    trocar.instrument_tip_frame = "endoscope";
     trocar.r = getLinear() + rOffset;
     trocar.theta = thetaStart - getTilt();
     trocar.phi = -getRotation();
