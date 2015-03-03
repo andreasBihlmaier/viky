@@ -14,9 +14,7 @@ const std::string Viky::rotationMotorDevicePath = "/dev/ttyS3";
 const std::string Viky::tiltMotorDevicePath = "/dev/ttyS4";
 const std::string Viky::linearMotorDevicePath = "/dev/ttyS5";
 
-Viky::Viky(const std::string& p_jointSubscribeTopic, const std::string& p_jointPublishTopic)
-  :m_jointSubscribeTopic(p_jointSubscribeTopic),
-   m_jointPublishTopic(p_jointPublishTopic)
+Viky::Viky()
 {
   m_motors[rotationMotorIdx] = new MotionControl(rotationMotorIdx, rotationMotorDevicePath);
   m_motors[tiltMotorIdx] = new MotionControl(tiltMotorIdx, tiltMotorDevicePath);
@@ -38,8 +36,10 @@ Viky::initHardware()
 bool
 Viky::initROS()
 {
-  m_jointsSubscriber = m_nodeHandle.subscribe<sensor_msgs::JointState>(m_jointSubscribeTopic, 1, &Viky::jointsCallback, this);
-  m_jointsPublisher = m_nodeHandle.advertise<sensor_msgs::JointState>(m_jointPublishTopic, 1);
+  m_jointsSubscriber = m_nodeHandle.subscribe<sensor_msgs::JointState>("set_joint", 1, &Viky::jointsCallback, this);
+  m_jointsPublisher = m_nodeHandle.advertise<sensor_msgs::JointState>("get_joint", 1);
+  m_trocarSubscriber = m_nodeHandle.subscribe<trocar2cartesian_msgs::TrocarPose>("set_trocar", 1, &Viky::trocarCallback, this);
+  m_trocarPublisher = m_nodeHandle.advertise<trocar2cartesian_msgs::TrocarPose>("get_trocar", 1);
 
   m_publishThread = new boost::thread(boost::bind(&Viky::publishJoints, this));
 
@@ -168,6 +168,14 @@ Viky::jointsCallback(const sensor_msgs::JointStateConstPtr& msg)
 }
 
 void
+Viky::trocarCallback(const trocar2cartesian_msgs::TrocarPoseConstPtr& msg)
+{
+  linear(msg->r);
+  tilt(msg->theta);
+  rotate(msg->phi);
+}
+
+void
 Viky::publishJoints()
 {
   uint32_t sequence = 0;
@@ -183,9 +191,14 @@ Viky::publishJoints()
     joints.position.push_back(getTilt());
     joints.name.push_back("linear");
     joints.position.push_back(getLinear());
-
     //ROS_INFO_STREAM(joints);
     m_jointsPublisher.publish(joints);
+
+    trocar2cartesian_msgs::TrocarPose trocar;
+    trocar.r = getLinear();
+    trocar.theta = getTilt();
+    trocar.phi = getRotation();
+    m_trocarPublisher.publish(trocar);
 
     publish_rate.sleep();
     sequence++;

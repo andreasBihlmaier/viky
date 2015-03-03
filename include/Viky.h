@@ -10,6 +10,7 @@
 
 // custom includes
 #include "MotionControl.h"
+#include <trocar2cartesian_msgs/TrocarPose.h>
 
 
 // forward declarations
@@ -49,7 +50,7 @@ class Viky
 
 
     // constructors
-    Viky(const std::string& p_jointSubscribeTopic, const std::string& p_jointPublishTopic);
+    Viky();
 
     // overwritten methods
 
@@ -73,6 +74,7 @@ class Viky
     // methods
     char getYesNo();
     void jointsCallback(const sensor_msgs::JointStateConstPtr& msg);
+    void trocarCallback(const trocar2cartesian_msgs::TrocarPoseConstPtr& msg);
     void publishJoints();
 
     // variables
@@ -82,6 +84,8 @@ class Viky
     ros::NodeHandle m_nodeHandle;
     ros::Subscriber m_jointsSubscriber;
     ros::Publisher m_jointsPublisher;
+    ros::Subscriber m_trocarSubscriber;
+    ros::Publisher m_trocarPublisher;
 
     boost::thread* m_publishThread;
 

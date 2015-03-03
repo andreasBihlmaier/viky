@@ -21,10 +21,7 @@ main(int argc, char** argv)
 {
   ros::init(argc, argv, "viky");
 
-  std::string jointsSubscribeTopic = "viky/set_joint";
-  std::string jointsPublishTopic = "viky/get_joint";
-
-  viky = new Viky(jointsSubscribeTopic, jointsPublishTopic);
+  viky = new Viky();
   signal(SIGINT, vikyDisableSighandler);
 
   if (!viky->initHardware()) {
